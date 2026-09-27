@@ -1,0 +1,13 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Record Prompt to History",
+      "trigger": "UserPromptSubmit",
+      "action": {
+        "type": "command",
+        "command": "/home/reshma/support-ticket-system/.kiro/hooks/record-prompt.sh"
+      }
+    }
+  ]
+}
