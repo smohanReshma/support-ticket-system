@@ -12,7 +12,6 @@ This document defines the requirements for a Support Ticket Management System th
 - Reporting
 - Multi-tenancy
 - Mobile applications
-- Frontend implementation
 
 ## 2. Actors
 
@@ -41,10 +40,32 @@ A user shall be able to retrieve a list of all tickets, sorted by createdAt desc
 
 **Request:** GET /api/v1/tickets
 
-**Response:** HTTP 200 OK with a list of all tickets
+**Response:** HTTP 200 OK with paginated list of tickets
+
+**Query Parameters:**
+- `page` (optional, default: 0): Zero-based page number
+- `size` (optional, default: 20): Number of tickets per page
+
+**Response Structure:**
+```json
+{
+  "content": [
+    {
+      "id": 1,
+      "title": "Issue with login",
+      "status": "OPEN",
+      "priority": "HIGH",
+      "createdAt": "2024-01-15T10:30:00Z"
+    }
+  ],
+  "page": 0,
+  "size": 20,
+  "totalElements": 1,
+  "totalPages": 1
+}
+```
 
 **Notes:**
-- List is not paginated
 - Empty result is valid when no tickets exist
 
 ### FR-003: View Ticket Details
@@ -86,7 +107,7 @@ Comments require:
 **Request:** POST /api/v1/tickets/{id}/comments with text and author
 
 **Response:**
-- HTTP 200 OK with the created comment on success
+- HTTP 201 Created with the created comment on success
 - HTTP 404 Not Found if ticket does not exist
 
 ### FR-006: Search Tickets by Keyword
@@ -146,6 +167,13 @@ A user shall be able to transition a ticket to a new status through a dedicated 
 **Notes:**
 - State transitions are enforced by the backend
 - State changes are persisted to the database
+
+### FR-009: UI Error Display
+The UI shall present validation errors from the backend to the user in a clear and accessible manner.
+The UI shall present state transition errors (409 Conflict) to the user with information about valid next states.
+The UI shall present resource not found errors (404) to the user when applicable.
+Error messages shall be displayed prominently and remain visible until the user dismisses them or the underlying issue is resolved.
+Error messages shall be presented in a way that does not block user interaction with other parts of the application.
 
 ## 4. Non-Functional Requirements
 
@@ -378,6 +406,7 @@ All other transitions are invalid:
 | RESOLVED | OPEN | 409 Conflict | Invalid: backwards transition |
 | RESOLVED | IN_PROGRESS | 409 Conflict | Invalid: backwards transition |
 | RESOLVED | RESOLVED | 409 Conflict | Invalid: same state |
+| RESOLVED | CANCELLED | 409 Conflict | Invalid: cannot transition from resolved |
 | CANCELLED | OPEN | 409 Conflict | Invalid: cannot restart cancelled |
 | CANCELLED | IN_PROGRESS | 409 Conflict | Invalid: cannot restart cancelled |
 | CANCELLED | RESOLVED | 409 Conflict | Invalid: cannot restart cancelled |
@@ -548,9 +577,9 @@ The system shall use parameterized queries to prevent SQL injection attacks. SQL
 ### AC-003: Ticket List
 **Given** A user requests the ticket list
 **When** The request is processed
-**Then** A list of all tickets is returned, sorted by createdAt descending, then id descending
+**Then** A paginated list of tickets is returned with content, page, size, totalElements, and totalPages
 
-**Test Mapping:** GET /api/v1/tickets -> TicketListResponse with all tickets
+**Test Mapping:** GET /api/v1/tickets?page=0&size=20 -> TicketListResponse with pagination metadata
 
 ### AC-004: Ticket Detail
 **Given** A user requests a specific ticket
@@ -593,6 +622,27 @@ The system shall use parameterized queries to prevent SQL injection attacks. SQL
 **Then** HTTP 404 Not Found is returned
 
 **Test Mapping:** POST /api/v1/tickets/999999/comments -> 404 response
+
+### AC-009a: UI Error Display - Validation Errors
+**Given** A user submits invalid data in a request
+**When** The backend returns validation errors
+**Then** The UI presents the validation errors to the user clearly
+
+**Test Mapping:** Validation error response -> UI displays error message
+
+### AC-009b: UI Error Display - Transition Errors
+**Given** A user attempts an invalid state transition
+**When** The backend returns a 409 Conflict with valid transitions
+**Then** The UI presents the error and available transitions to the user
+
+**Test Mapping:** 409 response with validTransitions -> UI displays error with options
+
+### AC-009c: UI Error Display - Resource Not Found
+**Given** A user requests a non-existent resource
+**When** The backend returns 404 Not Found
+**Then** The UI presents an appropriate message to the user
+
+**Test Mapping:** 404 response -> UI displays "not found" message
 
 ### AC-010: Comment Chronological Order
 **Given** A ticket has multiple comments
