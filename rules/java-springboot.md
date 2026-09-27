@@ -3,7 +3,7 @@
 ## Project Configuration
 - Java version: 21
 - Spring Boot version: 4.1.1
-- Gradle version: 8.10 (use Gradle wrapper)
+- Gradle version: 9.7.1 (use Gradle wrapper)
 
 ## Project Structure
 
