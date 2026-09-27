@@ -32,7 +32,7 @@ This plan covers the full assignment implementation based on the specification a
   - H2 database works in development profile
   - PostgreSQL configuration externalized via environment variables
   - No hardcoded secrets in configuration
-
+## TODO: pick all tasks only new tokens are available
 ### Task 1.3: Project Structure Setup
 - **Task ID:** 1.3
 - **Description:** Create package structure per architecture.md
