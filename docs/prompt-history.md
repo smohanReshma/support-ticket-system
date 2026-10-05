@@ -98,3 +98,78 @@ input would not be represented as genuine project prompt history.
 The Kiro conversation shows creation of the test record, inspection of the
 recorded file, and subsequent removal.
 
+## AI Implementation Incident — Mapper Dependency
+
+### Context
+During implementation of Tasks 2.4 and 2.5, Kiro created the repository
+interfaces and then created TicketMapper and CommentMapper.
+
+### AI Mistake
+The mapper implementations referenced DTO classes that are scheduled for
+later Tasks 4.1 and 4.2. Therefore, the mapper code could not compile at
+that stage.
+
+### Human/Engineering Validation
+The implementation was reviewed against IMPLEMENTATION-PLAN.md and the
+specification dependency chain. The mapper/DTO dependency was identified
+as inconsistent with the current implementation order.
+
+### Correction
+The prematurely created mapper files were removed. Mapper implementation
+will be created when the required DTOs exist, rather than accepting
+non-compiling code.
+
+### Evidence
+The original Kiro conversation contains the mapper creation, review,
+identification of the dependency problem, and subsequent removal.
+
+## AI Implementation Incident — Invalid Entity Imports
+
+### Context
+During implementation of the Ticket and Comment entities, Kiro reported that
+the entities matched the specification and that diagnostics showed no errors.
+
+### AI Mistake
+The generated entity code contained invalid imports/references:
+
+- `jakarta.validation.constraintsNotBlank` was used instead of
+  `jakarta.validation.constraints.NotBlank`.
+- `OnDelete` and `OnDeleteAction` were incorrectly referenced from
+  `jakarta.persistence`. These annotations are provided by Hibernate.
+
+Kiro's initial verification did not detect these compilation problems.
+
+### Observed Failure
+A subsequent Java 21 Gradle build failed during `compileJava` with 9
+compilation errors, including:
+
+- `cannot find symbol: class constraintsNotBlank`
+- `cannot find symbol: class OnDelete`
+- `cannot find symbol: class OnDeleteAction`
+
+### Human/Engineering Validation
+The project was verified using the actual Java 21 build rather than relying
+only on Kiro's diagnostics or summary.
+
+The build output demonstrated that the generated entity code did not compile.
+
+### Correction
+The incorrect validation imports were corrected to:
+
+`jakarta.validation.constraints.NotBlank`
+
+The Hibernate delete-cascade annotations were corrected to use:
+
+`org.hibernate.annotations.OnDelete`
+
+and:
+
+`org.hibernate.annotations.OnDeleteAction`
+
+No entity fields or business behavior were changed as part of this correction.
+
+### Evidence
+The original Kiro conversation and Gradle build output contain the incorrect
+code, the compilation failure, and the subsequent correction.
+
+
