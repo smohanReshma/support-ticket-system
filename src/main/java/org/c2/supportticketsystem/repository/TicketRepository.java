@@ -17,15 +17,33 @@ import java.util.List;
 public interface TicketRepository extends JpaRepository<Ticket, Long> {
 
     // Find tickets by status
+    Page<Ticket> findByStatus(Status status, Pageable pageable);
+
+    // Find tickets by status with Sort
     List<Ticket> findByStatus(Status status, Sort sort);
 
     // Search by title or description (case-insensitive)
     @Query("SELECT t FROM Ticket t WHERE " +
            "LOWER(t.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
            "LOWER(t.description) LIKE LOWER(CONCAT('%', :keyword, '%'))")
+    Page<Ticket> search(@Param("keyword") String keyword, Pageable pageable);
+
+    // Search by title or description (case-insensitive) with Sort
+    @Query("SELECT t FROM Ticket t WHERE " +
+           "LOWER(t.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(t.description) LIKE LOWER(CONCAT('%', :keyword, '%'))")
     List<Ticket> search(@Param("keyword") String keyword, Sort sort);
 
     // Find by status with search
+    @Query("SELECT t FROM Ticket t WHERE " +
+           "t.status = :status AND (" +
+           "LOWER(t.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(t.description) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+    Page<Ticket> findByStatusAndSearch(@Param("status") Status status,
+                                        @Param("keyword") String keyword,
+                                        Pageable pageable);
+
+    // Find by status with search with Sort
     @Query("SELECT t FROM Ticket t WHERE " +
            "t.status = :status AND (" +
            "LOWER(t.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
