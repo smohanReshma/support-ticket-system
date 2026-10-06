@@ -46,3 +46,7 @@ application-local.properties
 .env
 .env.local
 .env.*.local
+### Frontend ###
+src/frontend/node_modules/
+src/frontend/.next/
+src/frontend/.env.local
